@@ -6,17 +6,19 @@ void main() {
 }
 
 class App extends StatelessWidget {
-  const new({super.key});
+  const App({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) {    
     return MaterialApp(
-      title: "Faltômetro",
+      title: "Faltômetro",      
       debugShowCheckedModeBanner: false,
+      // definindo tema
       theme: ThemeData(
-        colorSchemeSeed: Colors.green,
-        appBarTheme: AppBarTheme(backgroundColor: Colors.lightGreen[700],)
-      ),
+        brightness: Brightness.dark,
+        colorSchemeSeed: Color.fromARGB(255, 46, 53, 54),
+        useMaterial3: true,       
+        ),     
       home: Principal(),
     );
   }

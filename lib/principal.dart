@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'disciplinas_tela.dart';
 import 'faltas_tela.dart';
-import 'resumo_tela.dart';
 import 'sobre_tela.dart';
 
 class Principal extends StatefulWidget {
@@ -13,7 +12,7 @@ class Principal extends StatefulWidget {
 
 class _PrincipalState extends State<Principal> {
   var paginaAtual = 0;
-  var paginas = const [DisciplinasTela(), Faltas(), Resumo(), Sobre()];
+  var paginas = const [DisciplinasTela(), Faltas(), Sobre()];
 
   @override
   Widget build(BuildContext context) {
@@ -21,24 +20,19 @@ class _PrincipalState extends State<Principal> {
       appBar: AppBar(title: const Text('Faltômetro'),),
       body: paginas.elementAt(paginaAtual),
       bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.lightGreen[100],
+        type: BottomNavigationBarType.fixed,        
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.menu_book_outlined),
             label: "Disciplinas"),
           BottomNavigationBarItem(
             icon: Icon(Icons.event_busy), 
-            label: "Faltas"),
+            label: "Faltas"),                    
           BottomNavigationBarItem(
-            icon: Icon(Icons.insights),
-            label: "Resumo"),
-            BottomNavigationBarItem(
             icon: Icon(Icons.info),
             label: "Sobre"),
         ],
-        currentIndex: paginaAtual,
-        fixedColor: Colors.green[900],
+        currentIndex: paginaAtual,        
         unselectedItemColor: Colors.grey[700],
         onTap: (int i) {
           setState(() {
