@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'formulario_diciplinas.dart';
+import 'formulario_disciplinas.dart';
 import 'disciplina.dart';
 import 'disciplina_controller.dart';
 import 'falta_controller.dart';
