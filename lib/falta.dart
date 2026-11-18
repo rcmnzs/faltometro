@@ -16,9 +16,14 @@ class Falta {
 
   // converte o texto de volta para DateTime
   factory Falta.fromJson(Map<String, dynamic> json) {
+    DateTime? data;
+    if (json["data"] != null) {
+      data = DateTime.parse(json["data"]);
+    }
+
     return Falta(
       nomeDisciplina: json["nomeDisciplina"],
-      data: json["data"] != null ? DateTime.parse(json["data"]) : null,
+      data: data,
       aulas: json["aulas"],
     );
   }

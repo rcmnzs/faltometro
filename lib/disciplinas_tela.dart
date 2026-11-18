@@ -16,17 +16,14 @@ class _DisciplinasTelaState extends State<DisciplinasTela> {
   @override
   void initState() {
     super.initState();
-    _carregarDados();
+    carregarDados();
   }
 
   // le as disciplinas e as faltas salvas no celular (igual ao exemplo 08 do professor)
-  Future<void> _carregarDados() async {
+  Future<void> carregarDados() async {
     await DisciplinaController.carregar();
     await FaltaController.carregar();
-    // se trocou de aba antes de terminar de carregar, a tela nao existe mais
-    if (mounted) {
-      setState(() {});
-    }
+    setState(() {});
   }
 
   @override
@@ -49,62 +46,60 @@ class _DisciplinasTelaState extends State<DisciplinasTela> {
 
   Widget _construirLista() {
     if (DisciplinaController.lista.isNotEmpty) {
-      return Column(
-        children: [
-          // dica de uso, ja que o toque longo nao e obvio
-          const Padding(
-            padding: EdgeInsets.only(top: 10),
-            child: Text(
-              "Toque para registrar falta • segure para editar ou excluir",
-              style: TextStyle(fontSize: 12),
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              itemCount: DisciplinaController.lista.length,
-              padding: const EdgeInsets.fromLTRB(10, 10, 10, 80), // espaco embaixo para o botao + nao cobrir o ultimo card
-              itemBuilder: (BuildContext context, index) {
-                var d = DisciplinaController.lista[index];
-                double progresso = d.limiteFaltas == 0 // evita valor invalido na barra de progresso
-                    ? 1.0
-                    : (d.faltas / d.limiteFaltas).clamp(0.0, 1.0).toDouble();
+      return ListView.builder(
+        itemCount: DisciplinaController.lista.length,
+        padding: const EdgeInsets.fromLTRB(10, 10, 10, 80), // espaco embaixo para o botao + nao cobrir o ultimo card
+        itemBuilder: (BuildContext context, index) {
+          var d = DisciplinaController.lista[index];
 
-                // cor da barra muda dependendo da quantidade de faltas
-                Color cor = Colors.green;
-                if (progresso >= 1.0) {
-                  cor = Colors.red;
-                } else if (progresso >= 0.8) {
-                  cor = Colors.amber;
-                }
+          // progresso da barra = faltas / limite (nunca passa de 1.0)
+          double progresso = 1.0; // se o limite for 0, a barra ja aparece cheia
+          if (d.limiteFaltas > 0) {
+            progresso = d.faltas / d.limiteFaltas;
+            if (progresso > 1.0) {
+              progresso = 1.0;
+            }
+          }
 
-                return Card(
-                  child: ListTile(
-                    // toque simples: abre a tela de registrar falta ja com essa disciplina
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => Faltas(disciplina: d)),
-                      ).then((_) { setState(() {}); });
-                    },
-                    // toque longo: abre as opcoes de editar e excluir
-                    onLongPress: () {
-                      _mostrarOpcoes(index);
-                    },
-                    title: Text(d.nome!),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text("${d.faltas} de ${d.limiteFaltas} faltas permitidas"),
-                        LinearProgressIndicator(value: progresso, color: cor), // componente nao visto em sala: barra de progressao
-                      ],
-                    ),
-                    trailing: Text(d.passouDoLimite ? "Limite excedido" : "Restam ${d.faltasRestantes}"),
-                  ),
-                );
+          // cor da barra muda dependendo da quantidade de faltas
+          Color cor = Colors.green;
+          if (progresso >= 1.0) {
+            cor = Colors.red;
+          } else if (progresso >= 0.8) {
+            cor = Colors.amber;
+          }
+
+          // texto da direita: quantas faltas restam ou aviso de limite estourado
+          String textoRestantes = "Restam ${d.faltasRestantes}";
+          if (d.passouDoLimite) {
+            textoRestantes = "Limite excedido";
+          }
+
+          return Card(
+            child: ListTile(
+              // toque simples: abre a tela de registrar falta ja com essa disciplina
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => Faltas(disciplina: d)),
+                ).then((_) { setState(() {}); });
               },
+              // toque longo: abre as opcoes de editar e excluir
+              onLongPress: () {
+                _mostrarOpcoes(index);
+              },
+              title: Text(d.nome!),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text("${d.faltas} de ${d.limiteFaltas} faltas permitidas"),
+                  LinearProgressIndicator(value: progresso, color: cor), // componente nao visto em sala: barra de progressao
+                ],
+              ),
+              trailing: Text(textoRestantes),
             ),
-          ),
-        ],
+          );
+        },
       );
     } else {
       return const Center(child: Text("Nenhuma disciplina cadastrada.")); // se a lista de Disciplinas estiver vazia, exibe isso
@@ -115,7 +110,7 @@ class _DisciplinasTelaState extends State<DisciplinasTela> {
   Future<void> _mostrarOpcoes(int index) async {
     Disciplina d = DisciplinaController.lista[index];
 
-    String? opcao = await showDialog<String>(
+    var opcao = await showDialog(
       context: context,
       builder: (BuildContext context) {
         return SimpleDialog(
@@ -137,8 +132,6 @@ class _DisciplinasTelaState extends State<DisciplinasTela> {
         );
       },
     );
-
-    if (!mounted) return;
 
     if (opcao == "editar") {
       _editar(index);
@@ -166,7 +159,7 @@ class _DisciplinasTelaState extends State<DisciplinasTela> {
       title: const Text("Excluir disciplina"),
       content: Text("Excluir ${d.nome}? As faltas registradas dela tambem serao apagadas."),
       actions: [
-        TextButton(
+        ElevatedButton(
           onPressed: () {
             Navigator.pop(context, false);
           },
@@ -181,7 +174,7 @@ class _DisciplinasTelaState extends State<DisciplinasTela> {
       ],
     );
 
-    bool? confirmou = await showDialog<bool>(
+    var confirmou = await showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
@@ -192,7 +185,6 @@ class _DisciplinasTelaState extends State<DisciplinasTela> {
     if (confirmou == true) {
       await DisciplinaController.excluir(d);
       await FaltaController.excluirDaDisciplina(d.nome!); // apaga o historico dessa disciplina
-      if (!mounted) return;
       setState(() {});
 
       SnackBar snackBar = SnackBar(

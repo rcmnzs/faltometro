@@ -13,7 +13,13 @@ class Disciplina {
 
   int get limiteFaltas => (totalAulas! * 0.25).floor(); // limite de faltas = 25% do total de aulas (frequencia minima de 75%)
   bool get passouDoLimite => faltas > limiteFaltas; // true quando ja reprovou por falta
-  int get faltasRestantes => passouDoLimite ? 0 : limiteFaltas - faltas; // nunca mostra valor negativo
+  int get faltasRestantes {
+    // nunca mostra valor negativo
+    if (passouDoLimite) {
+      return 0;
+    }
+    return limiteFaltas - faltas;
+  }
   double get percentualFaltas => faltas / totalAulas! * 100; // calcula percentual de faltas
 
   // transforma a disciplina em Map para salvar como texto (igual ao exemplo 08 do professor)

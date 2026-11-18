@@ -4,7 +4,6 @@ import 'falta.dart';
 
 class FaltaController {
   static List<Falta> lista = [];
-  static bool carregado = false; // evita ler do celular mais de uma vez
 
   static Future<void> incluir(Falta f) async {
     lista.add(f);
@@ -18,7 +17,13 @@ class FaltaController {
 
   // quando uma disciplina e excluida, o historico dela some junto
   static Future<void> excluirDaDisciplina(String nome) async {
-    lista.removeWhere((f) => f.nomeDisciplina == nome);
+    List<Falta> restantes = [];
+    for (Falta f in lista) {
+      if (f.nomeDisciplina != nome) {
+        restantes.add(f);
+      }
+    }
+    lista = restantes;
     await salvar();
   }
 
@@ -45,11 +50,6 @@ class FaltaController {
   }
 
   static Future<void> carregar() async {
-    // so le na primeira vez; depois a lista em memoria ja esta atualizada
-    if (carregado) {
-      return;
-    }
-
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     List<String>? dados = prefs.getStringList("faltas");
@@ -59,7 +59,5 @@ class FaltaController {
         return Falta.fromJson(jsonDecode(item));
       }).toList();
     }
-
-    carregado = true;
   }
 }

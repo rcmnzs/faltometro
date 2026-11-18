@@ -4,7 +4,6 @@ import 'disciplina.dart';
 
 class DisciplinaController {
   static List<Disciplina> lista = [];
-  static bool carregado = false; // evita ler do celular mais de uma vez
 
   // todo metodo que muda a lista chama salvar() para nao perder os dados ao fechar o app
   static Future<void> incluir(Disciplina d) async {
@@ -37,11 +36,6 @@ class DisciplinaController {
 
   // le a lista salva no celular e transforma o texto JSON de volta em Disciplina
   static Future<void> carregar() async {
-    // so le na primeira vez; depois a lista em memoria ja esta atualizada
-    if (carregado) {
-      return;
-    }
-
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     List<String>? dados = prefs.getStringList("disciplinas");
@@ -51,7 +45,5 @@ class DisciplinaController {
         return Disciplina.fromJson(jsonDecode(item));
       }).toList();
     }
-
-    carregado = true;
   }
 }

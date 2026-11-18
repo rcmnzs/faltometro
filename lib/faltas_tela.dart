@@ -7,7 +7,7 @@ import 'falta_controller.dart';
 class Faltas extends StatefulWidget {
   final Disciplina? disciplina; // quando vem da tela Disciplinas, ja abre com ela escolhida
 
-  const Faltas({super.key, this.disciplina});
+  const Faltas({Key? key, this.disciplina}) : super(key: key);
 
   @override
   State<Faltas> createState() => _FaltasState();
@@ -33,11 +33,14 @@ class _FaltasState extends State<Faltas> {
       );
     }
 
+    // como aba nao tem AppBar (a Principal ja tem); aberta pela lista, tem
+    AppBar? barra;
+    if (widget.disciplina != null) {
+      barra = AppBar(title: const Text("Registrar falta"));
+    }
+
     return Scaffold(
-      // como aba nao tem AppBar (a Principal ja tem); aberta pela lista, tem
-      appBar: widget.disciplina != null
-          ? AppBar(title: const Text("Registrar falta"))
-          : null,
+      appBar: barra,
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -60,7 +63,7 @@ class _FaltasState extends State<Faltas> {
                 });
               },
             ),
-            if (disciplinaEscolhida != null) Text(_resumoDisciplina()),
+            Text(_resumoDisciplina()),
             const SizedBox(height: 10),
             Row(
               children: [
@@ -105,7 +108,7 @@ class _FaltasState extends State<Faltas> {
                 child: const Text("Registrar falta"),
               ),
             ),
-            const Divider(),
+            const SizedBox(height: 10),
             const Text("Histórico"),
             Expanded(child: _construirHistorico()),
           ],
@@ -166,7 +169,10 @@ class _FaltasState extends State<Faltas> {
     Disciplina d = disciplinaEscolhida!;
 
     // cada falta vale 1 aula: dia todo soma as aulas do dia, senao soma 1
-    int aulas = _opcao == 1 ? d.aulasPorDia! : 1;
+    int aulas = 1;
+    if (_opcao == 1) {
+      aulas = d.aulasPorDia!;
+    }
 
     d.faltas += aulas;
     Falta f = Falta(nomeDisciplina: d.nome, data: data, aulas: aulas);
@@ -175,8 +181,6 @@ class _FaltasState extends State<Faltas> {
     // salva a falta no historico e o novo total de faltas da disciplina
     await FaltaController.incluir(f);
     await DisciplinaController.salvar();
-    // se trocou de aba enquanto salvava, nao tem mais tela para mostrar mensagem
-    if (!mounted) return;
 
     SnackBar snackBar = SnackBar(
       duration: const Duration(seconds: 2),
@@ -199,10 +203,7 @@ class _FaltasState extends State<Faltas> {
     d.faltas -= f.aulas!;
     await FaltaController.excluir(f);
     await DisciplinaController.salvar();
-    // se o usuario trocou de aba antes de desfazer, a tela nao existe mais
-    if (mounted) {
-      setState(() {});
-    }
+    setState(() {});
   }
 
   // AlertDialog aparece quando chega perto do limite, no limite ou passa dele
@@ -247,9 +248,11 @@ class _FaltasState extends State<Faltas> {
   }
 
   String _resumoDisciplina() {
+    if (disciplinaEscolhida == null) {
+      return "Nenhuma disciplina selecionada.";
+    }
     Disciplina d = disciplinaEscolhida!;
-    int restantes = d.faltasRestantes < 0 ? 0 : d.faltasRestantes;
-    return "Faltas: ${d.faltas} de ${d.limiteFaltas} permitidas (restam $restantes)";
+    return "Faltas: ${d.faltas} de ${d.limiteFaltas} permitidas (restam ${d.faltasRestantes})";
   }
 
   String _textoDiaTodo() {
@@ -260,12 +263,21 @@ class _FaltasState extends State<Faltas> {
   }
 
   String _textoAulas(int n) {
-    return n == 1 ? "1 aula" : "$n aulas";
+    if (n == 1) {
+      return "1 aula";
+    }
+    return "$n aulas";
   }
 
   String _formatarData(DateTime d) {
-    String dia = d.day.toString().padLeft(2, '0');
-    String mes = d.month.toString().padLeft(2, '0');
+    String dia = "${d.day}";
+    String mes = "${d.month}";
+    if (d.day < 10) {
+      dia = "0${d.day}";
+    }
+    if (d.month < 10) {
+      mes = "0${d.month}";
+    }
     return "$dia/$mes/${d.year}";
   }
 }
